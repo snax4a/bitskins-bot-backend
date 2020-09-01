@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using WebApi.Entities;
@@ -15,13 +16,16 @@ namespace WebApi.Controllers
     {
         private readonly IAccountService _accountService;
         private readonly IMapper _mapper;
+        private readonly ILogger _logger;
 
         public AccountsController(
             IAccountService accountService,
-            IMapper mapper)
+            IMapper mapper,
+            ILogger<AccountsController> logger)
         {
             _accountService = accountService;
             _mapper = mapper;
+            _logger = logger;
         }
 
         [HttpPost("authenticate")]

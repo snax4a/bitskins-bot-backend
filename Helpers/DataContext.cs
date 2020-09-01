@@ -7,7 +7,7 @@ namespace WebApi.Helpers
     public class DataContext : DbContext
     {
         public DbSet<Account> Accounts { get; set; }
-        
+
         private readonly IConfiguration Configuration;
 
         public DataContext(IConfiguration configuration)

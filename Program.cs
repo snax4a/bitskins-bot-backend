@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
+using Serilog;
 
 namespace WebApi
 {
@@ -16,6 +17,10 @@ namespace WebApi
                 {
                     webBuilder.UseStartup<Startup>()
                         .UseUrls("http://localhost:4000");
-                });
+                })
+                .UseSerilog((hostingContext, loggerConfig) =>
+                    loggerConfig.ReadFrom
+                    .Configuration(hostingContext.Configuration)
+                );
     }
 }

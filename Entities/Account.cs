@@ -22,6 +22,8 @@ namespace WebApi.Entities
         public DateTime Created { get; set; }
         public DateTime? Updated { get; set; }
         public List<RefreshToken> RefreshTokens { get; set; }
+        public List<WhitelistedItem> WhitelistedItems { get; set; }
+        public List<PurchasedItem> PurchasedItems { get; set; }
 
         public bool OwnsToken(string token) 
         {
