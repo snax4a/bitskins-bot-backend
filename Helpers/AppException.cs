@@ -3,7 +3,7 @@ using System.Globalization;
 
 namespace WebApi.Helpers
 {
-    // custom exception class for throwing application specific exceptions 
+    // custom exception class for throwing application specific exceptions
     // that can be caught and handled within the application
     public class AppException : Exception
     {
@@ -11,7 +11,7 @@ namespace WebApi.Helpers
 
         public AppException(string message) : base(message) { }
 
-        public AppException(string message, params object[] args) 
+        public AppException(string message, params object[] args)
             : base(String.Format(CultureInfo.CurrentCulture, message, args))
         {
         }

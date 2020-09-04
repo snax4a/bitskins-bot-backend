@@ -7,6 +7,7 @@ namespace WebApi.Helpers
     public class DataContext : DbContext
     {
         public DbSet<Account> Accounts { get; set; }
+        public DbSet<WhitelistedItem> WhitelistedItems { get; set; }
 
         private readonly IConfiguration Configuration;
 

@@ -1,0 +1,41 @@
+﻿<Properties StartupConfiguration="{9B17E148-B45B-4926-9E8F-D677BE274E62}|Default">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Services/AccountService.cs">
+    <Files>
+      <File FileName="Startup.cs" />
+      <File FileName="Helpers/DataContext.cs" />
+      <File FileName="Entities/PurchasedItem.cs" Line="12" Column="43" />
+      <File FileName="Services/AccountService.cs" Line="86" Column="38" />
+      <File FileName="Entities/Account.cs" Line="19" Column="47" />
+      <File FileName="Models/Accounts/AuthenticateResponse.cs" Line="1" Column="1" />
+    </Files>
+    <Pads>
+      <Pad Id="ProjectPad">
+        <State name="__root__">
+          <Node name="WebApi" expanded="True">
+            <Node name="WebApi" expanded="True">
+              <Node name="Dependencies" expanded="True" />
+              <Node name="Controllers" expanded="True" />
+              <Node name="Entities" expanded="True" />
+              <Node name="Helpers" expanded="True" />
+              <Node name="Middleware" expanded="True" />
+              <Node name="Models" expanded="True">
+                <Node name="Accounts" expanded="True" />
+              </Node>
+              <Node name="Properties" expanded="True" />
+              <Node name="Services" expanded="True">
+                <Node name="AccountService.cs" selected="True" />
+              </Node>
+            </Node>
+          </Node>
+        </State>
+      </Pad>
+    </Pads>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.ItemProperties.WebApi PreferredExecutionTarget="/Applications/Google Chrome.app" />
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MultiItemStartupConfigurations />
+</Properties>
