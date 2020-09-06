@@ -51,6 +51,8 @@ namespace WebApi.Controllers
         [HttpPost]
         public ActionResult<WhitelistedItemResponse> Create(CreateRequest model)
         {
+            model.AccountId = Account.Id;
+
             var item = _whitelistedItemService.Create(model);
             return Ok(item);
         }

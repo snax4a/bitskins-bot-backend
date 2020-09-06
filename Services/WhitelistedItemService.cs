@@ -52,7 +52,7 @@ namespace WebApi.Services
         public WhitelistedItemResponse Create(CreateRequest model)
         {
             // validate
-            if (_context.WhitelistedItems.Any(x => x.Name == model.Name))
+            if (_context.WhitelistedItems.Any(x => x.Name == model.Name && x.AccountId == model.AccountId))
                 throw new AppException($"Item '{model.Name}' is already whitelisted");
 
             // map model to new account object

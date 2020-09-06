@@ -9,8 +9,7 @@ namespace WebApi.Models.Accounts
         private string _confirmPassword;
         private string _role;
         private string _email;
-        
-        public string Title { get; set; }
+
         public string FirstName { get; set; }
         public string LastName { get; set; }
 
@@ -36,7 +35,7 @@ namespace WebApi.Models.Accounts
         }
 
         [Compare("Password")]
-        public string ConfirmPassword 
+        public string ConfirmPassword
         {
             get => _confirmPassword;
             set => _confirmPassword = replaceEmptyWithNull(value);

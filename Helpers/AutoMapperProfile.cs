@@ -1,6 +1,7 @@
 using AutoMapper;
 using WebApi.Entities;
 using WebApi.Models.Accounts;
+using WebApi.Models.WhitelistedItems;
 
 namespace WebApi.Helpers
 {
@@ -15,9 +16,9 @@ namespace WebApi.Helpers
 
             CreateMap<RegisterRequest, Account>();
 
-            CreateMap<CreateRequest, Account>();
+            CreateMap<Models.Accounts.CreateRequest, Account>();
 
-            CreateMap<UpdateRequest, Account>()
+            CreateMap<Models.Accounts.UpdateRequest, Account>()
                 .ForAllMembers(x => x.Condition(
                     (src, dest, prop) =>
                     {
@@ -31,6 +32,10 @@ namespace WebApi.Helpers
                         return true;
                     }
                 ));
+
+            CreateMap<Models.WhitelistedItems.CreateRequest, WhitelistedItem>();
+            CreateMap<Models.WhitelistedItems.UpdateRequest, WhitelistedItem>();
+            CreateMap<WhitelistedItem, WhitelistedItemResponse>();
         }
     }
 }

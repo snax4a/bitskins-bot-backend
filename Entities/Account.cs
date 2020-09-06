@@ -6,7 +6,6 @@ namespace WebApi.Entities
     public class Account
     {
         public int Id { get; set; }
-        public string Title { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string Email { get; set; }
@@ -25,7 +24,7 @@ namespace WebApi.Entities
         public List<WhitelistedItem> WhitelistedItems { get; set; }
         public List<PurchasedItem> PurchasedItems { get; set; }
 
-        public bool OwnsToken(string token) 
+        public bool OwnsToken(string token)
         {
             return this.RefreshTokens?.Find(x => x.Token == token) != null;
         }
