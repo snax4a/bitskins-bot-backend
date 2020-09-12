@@ -63,12 +63,12 @@ namespace WebApi.Controllers
             return Ok(new { message = "Token revoked" });
         }
 
-        [HttpPost("register")]
-        public IActionResult Register(RegisterRequest model)
-        {
-            _accountService.Register(model, Request.Headers["origin"]);
-            return Ok(new { message = "Registration successful, please check your email for verification instructions" });
-        }
+        // [HttpPost("register")]
+        // public IActionResult Register(RegisterRequest model)
+        // {
+        //     _accountService.Register(model, Request.Headers["origin"]);
+        //     return Ok(new { message = "Registration successful, please check your email for verification instructions" });
+        // }
 
         [HttpPost("verify-email")]
         public IActionResult VerifyEmail(VerifyEmailRequest model)

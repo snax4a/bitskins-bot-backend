@@ -41,5 +41,8 @@ typings
 bin
 obj
 
+# Production appsettings
+appsettings.Production.json
+
 # Generated SQLite db
 WebApiDatabase.db

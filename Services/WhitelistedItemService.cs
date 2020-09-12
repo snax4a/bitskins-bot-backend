@@ -22,18 +22,15 @@ namespace WebApi.Services
     {
         private readonly DataContext _context;
         private readonly IMapper _mapper;
-        private readonly AppSettings _appSettings;
         private readonly ILogger<WhitelistedItemService> _logger;
 
         public WhitelistedItemService(
             DataContext context,
             IMapper mapper,
-            IOptions<AppSettings> appSettings,
             ILogger<WhitelistedItemService> logger)
         {
             _context = context;
             _mapper = mapper;
-            _appSettings = appSettings.Value;
             _logger = logger;
         }
 

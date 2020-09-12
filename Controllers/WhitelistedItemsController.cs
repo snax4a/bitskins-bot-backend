@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using WebApi.Entities;
 using WebApi.Models.WhitelistedItems;
 using WebApi.Services;
@@ -15,15 +16,27 @@ namespace WebApi.Controllers
         private readonly IWhitelistedItemService _whitelistedItemService;
         private readonly IMapper _mapper;
         private readonly ILogger _logger;
+        private readonly IBitskinsService _bitskinsService;
 
         public WhitelistedItemsController(
             IWhitelistedItemService whitelistedItemService,
             IMapper mapper,
-            ILogger<WhitelistedItemsController> logger)
+            ILogger<WhitelistedItemsController> logger,
+            IBitskinsService bitskinsService)
         {
             _whitelistedItemService = whitelistedItemService;
             _mapper = mapper;
             _logger = logger;
+            _bitskinsService = bitskinsService;
+        }
+
+        [HttpGet("test")]
+        public async Task<ActionResult> testAsync()
+        {
+            var options = new { market_hash_name = "AK-47 Blue-Laminate", price = 0.50 };
+            var balance = await _bitskinsService.GetAccountBalance();
+            // balance
+            return Ok(balance.AvailableBalance);
         }
 
         [Authorize]

@@ -25,8 +25,10 @@ namespace WebApi
         {
             services.AddDbContext<DataContext>();
             services.AddCors();
-            services.AddControllers().AddJsonOptions(x => x.JsonSerializerOptions.IgnoreNullValues = true);
+            services.AddControllers()
+                .AddNewtonsoftJson(options => options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+            services.AddHttpClient<IBitskinsService, BitskinsService>();
             services.AddSwaggerGen(options =>
             {
                 options.CustomSchemaIds(type => type.ToString());
@@ -49,7 +51,7 @@ namespace WebApi
 
             // generated swagger json and swagger ui middleware
             app.UseSwagger();
-            app.UseSwaggerUI(x => x.SwaggerEndpoint("/swagger/v1/swagger.json", "ASP.NET Core Sign-up and Verification API"));
+            app.UseSwaggerUI(x => x.SwaggerEndpoint("/swagger/v1/swagger.json", "Bitskins bot API"));
 
             app.UseRouting();
 
