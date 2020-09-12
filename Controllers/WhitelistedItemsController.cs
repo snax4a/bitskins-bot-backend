@@ -33,10 +33,10 @@ namespace WebApi.Controllers
         [HttpGet("test")]
         public async Task<ActionResult> testAsync()
         {
-            var options = new { market_hash_name = "AK-47 Blue-Laminate", price = 0.50 };
-            var balance = await _bitskinsService.GetAccountBalance();
-            // balance
-            return Ok(balance.AvailableBalance);
+            string itemName = "AK-47 | VULCAN (MINIMAL WEAR)";
+            var itemSales = await _bitskinsService.GetRecentSalesInfo(itemName);
+
+            return Ok(itemSales);
         }
 
         [Authorize]

@@ -19,6 +19,7 @@ namespace WebApi.Services
     public interface IBitskinsService
     {
         Task<AccountBalance> GetAccountBalance();
+        Task<IEnumerable<Sale>> GetRecentSalesInfo(string itemName);
     }
 
     public class BitskinsService : IBitskinsService
@@ -53,6 +54,26 @@ namespace WebApi.Services
             var balanceData = parsedJson["data"].ToString();
 
             return JsonConvert.DeserializeObject<AccountBalance>(balanceData);
+        }
+
+        public async Task<IEnumerable<Sale>> GetRecentSalesInfo(string itemName)
+        {
+            if (itemName == null) throw new AppException("You have to provide correct item name.");
+
+            var options = new {
+                market_hash_name = itemName,
+            };
+
+            string url = PrepareUrl("get_sales_info", options);
+            var response = await _httpClient.GetAsync(url);
+
+            response.EnsureSuccessStatusCode();
+
+            var jsonString = await response.Content.ReadAsStringAsync();
+            var parsedJson = JObject.Parse(jsonString);
+            var itemSales = parsedJson["data"]["sales"].ToString();
+
+            return JsonConvert.DeserializeObject<IEnumerable<Sale>>(itemSales);
         }
 
         // helper methods

@@ -1,3 +1,4 @@
+using System;
 using Newtonsoft.Json;
 
 public class Sale
@@ -8,5 +9,6 @@ public class Sale
     [JsonProperty("wear_value")]
     public double WearValue { get; set; }
     [JsonProperty("sold_at")]
-    public double SoldAt { get; set; }
+    [JsonConverter(typeof(UnixTimestampConverter))]
+    public DateTime SoldAt;
 }
