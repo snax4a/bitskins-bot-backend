@@ -6,6 +6,7 @@ using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
 using WebApi.Helpers;
+using WebApi.Services;
 
 namespace WebApi.Middleware
 {
@@ -14,7 +15,9 @@ namespace WebApi.Middleware
         private readonly RequestDelegate _next;
         private readonly ILogger _logger;
 
-        public ErrorHandlerMiddleware(RequestDelegate next, ILogger<ErrorHandlerMiddleware> logger)
+        public ErrorHandlerMiddleware(
+            RequestDelegate next,
+            ILogger<ErrorHandlerMiddleware> logger)
         {
             _next = next;
             _logger = logger;
@@ -30,6 +33,7 @@ namespace WebApi.Middleware
             {
                 var response = context.Response;
                 response.ContentType = "application/json";
+                _logger.LogError(error.ToString());
 
                 switch(error)
                 {
@@ -42,8 +46,6 @@ namespace WebApi.Middleware
                         response.StatusCode = (int)HttpStatusCode.NotFound;
                         break;
                     default:
-                        // unhandled error
-                        _logger.LogError(error.ToString());
                         response.StatusCode = (int)HttpStatusCode.InternalServerError;
                         break;
                 }

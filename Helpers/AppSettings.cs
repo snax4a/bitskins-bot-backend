@@ -10,5 +10,6 @@ namespace WebApi.Helpers
         public string SmtpPass { get; set; }
         public string BitskinsSecret { get; set; }
         public string BitskinsApiKey { get; set; }
+        public string CsgobackpackApiKey { get; set; }
     }
 }

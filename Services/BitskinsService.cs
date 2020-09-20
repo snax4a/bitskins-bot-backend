@@ -5,7 +5,6 @@ using Microsoft.Extensions.Options;
 using OtpNet;
 using System;
 using System.Net.Http;
-using System.Text.Json;
 using Albireo.Base32;
 using System.Threading.Tasks;
 using System.Reflection;
@@ -13,6 +12,8 @@ using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
+using WebApi.Models.Bitskins;
+using System.Globalization;
 
 namespace WebApi.Services
 {
@@ -20,12 +21,17 @@ namespace WebApi.Services
     {
         Task<AccountBalance> GetAccountBalance();
         Task<IEnumerable<Sale>> GetRecentSalesInfo(string itemName);
+        Task<IEnumerable<Sale>> GetBuyHistory(int pageNumber = 1);
+        Task BuyItem(BitskinsItem item);
+        Task ProcessItems(List<BitskinsItem> items);
     }
 
     public class BitskinsService : IBitskinsService
     {
         private readonly IMapper _mapper;
         private readonly ILogger<BitskinsService> _logger;
+        private readonly IWhitelistedItemService _whitelistedItemService;
+        private readonly ICsgobackpackService _csgobackpackService;
         private readonly AppSettings _appSettings;
         private readonly HttpClient _httpClient;
 
@@ -33,10 +39,14 @@ namespace WebApi.Services
             IMapper mapper,
             ILogger<BitskinsService> logger,
             IOptions<AppSettings> appSettings,
+            IWhitelistedItemService whitelistedItemService,
+            ICsgobackpackService csgobackpackService,
             HttpClient client)
         {
             _mapper = mapper;
             _logger = logger;
+            _whitelistedItemService = whitelistedItemService;
+            _csgobackpackService = csgobackpackService;
             _appSettings = appSettings.Value;
             client.BaseAddress = new Uri("https://bitskins.com/api/v1/");
             _httpClient = client;
@@ -54,6 +64,24 @@ namespace WebApi.Services
             var balanceData = parsedJson["data"].ToString();
 
             return JsonConvert.DeserializeObject<AccountBalance>(balanceData);
+        }
+
+        public async Task<IEnumerable<Sale>> GetBuyHistory(int pageNumber = 1)
+        {
+            var options = new {
+                page = pageNumber,
+            };
+
+            string url = PrepareUrl("get_buy_history", options);
+            var response = await _httpClient.GetAsync(url);
+
+            response.EnsureSuccessStatusCode();
+
+            var jsonString = await response.Content.ReadAsStringAsync();
+            var parsedJson = JObject.Parse(jsonString);
+            var buyHistory = parsedJson["data"]["items"].ToString();
+
+            return JsonConvert.DeserializeObject<IEnumerable<Sale>>(buyHistory);
         }
 
         public async Task<IEnumerable<Sale>> GetRecentSalesInfo(string itemName)
@@ -74,6 +102,80 @@ namespace WebApi.Services
             var itemSales = parsedJson["data"]["sales"].ToString();
 
             return JsonConvert.DeserializeObject<IEnumerable<Sale>>(itemSales);
+        }
+
+        public async Task BuyItem(BitskinsItem item)
+        {
+
+            _logger.LogInformation($"Buying: {item.ToString()}");
+
+            var options = new {
+                item_ids = item.ItemId,
+                prices = item.Price.ToString(new CultureInfo("en-US")),
+                auto_trade = "false"
+            };
+
+            string url = PrepareUrl("buy_item", options);
+            var response = await _httpClient.GetAsync(url);
+            var content = await response.Content.ReadAsStringAsync();
+            var json = JObject.Parse(content);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                JToken unavailableIds = json.SelectToken("data.unavailable_item_ids");
+
+                if (unavailableIds != null)
+                    throw new ItemNotAvailableException(unavailableIds.ToString());
+                else
+                    throw new ShouldNotifyException($"Buy Item response error: {content}");
+            }
+
+            _logger.LogInformation($"SUCCESS ---->> Buy Item response: {content}");
+        }
+
+        public async Task ProcessItems(List<BitskinsItem> items)
+        {
+            // _logger.LogInformation($"Processing {items.Count} new items");
+            // Console.WriteLine(JsonConvert.SerializeObject(items));
+
+            List<BitskinsItem> wantedItems = new List<BitskinsItem>();
+
+            foreach (BitskinsItem item in items)
+            {
+                _logger.LogInformation($"Checking item price: {item.MarketHashName} ({item.Price})");
+                // check if this item is whitelisted in database
+                var whitelisted = _whitelistedItemService.GetByName(item.MarketHashName);
+
+                // skip if item is not whitelisted
+                if (whitelisted == null) continue;
+
+                // get item external price
+                ItemPrice externalPrice = await _csgobackpackService.GetItemPrice(item.MarketHashName);
+                decimal averagePrice = Convert.ToDecimal(externalPrice.Average);
+                _logger.LogInformation($"average price: {averagePrice}");
+                // _logger.LogInformation($"multiplier: {whitelisted.PriceMultiplier}");
+
+                // skip if item price is greather than multiplier * averagePrice
+                if (item.Price > (whitelisted.PriceMultiplier * averagePrice)) {
+                    _logger.LogInformation($"Skipping item: {item.MarketHashName} ({item.Price})");
+                    continue;
+                }
+
+                // if above conditions are met add item to wantedItems list
+                wantedItems.Add(item);
+            }
+
+            _logger.LogInformation($"Found {wantedItems.Count} wanted items.");
+            if (wantedItems.Count == 0) return;
+
+            foreach (BitskinsItem item in wantedItems)
+            {
+                try {
+                    await this.BuyItem(item);
+                } catch(ItemNotAvailableException ex) {
+                    _logger.LogWarning($"Item is not available for purchase: ${ex.ToString()}");
+                }
+            }
         }
 
         // helper methods

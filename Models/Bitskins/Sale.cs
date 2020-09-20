@@ -5,7 +5,7 @@ public class Sale
 {
     [JsonProperty("market_hash_name")]
     public string MarketHashName { get; set; }
-    public double Price { get; set; }
+    public decimal Price { get; set; }
     [JsonProperty("wear_value")]
     public double WearValue { get; set; }
     [JsonProperty("sold_at")]

@@ -16,7 +16,7 @@
             "stopAtEntry": false,
             "internalConsoleOptions": "openOnSessionStart",
             "env": {
-                "ASPNETCORE_ENVIRONMENT": "Production"
+                "ASPNETCORE_ENVIRONMENT": "Development"
             },
             "sourceFileMap": {
                 "/Views": "${workspaceFolder}/Views"

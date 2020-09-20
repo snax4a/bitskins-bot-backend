@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Serilog;
 using System;
 using WebApi.Helpers;
 using WebApi.Middleware;
@@ -29,6 +31,7 @@ namespace WebApi
                 .AddNewtonsoftJson(options => options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
             services.AddHttpClient<IBitskinsService, BitskinsService>();
+            services.AddHttpClient<ICsgobackpackService, CsgobackpackService>();
             services.AddSwaggerGen(options =>
             {
                 options.CustomSchemaIds(type => type.ToString());
@@ -49,6 +52,14 @@ namespace WebApi
             // migrate database changes on startup (includes initial db creation)
             context.Database.Migrate();
 
+            if (env.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
+
+            // global error handler
+            app.UseMiddleware<ErrorHandlerMiddleware>();
+
             // generated swagger json and swagger ui middleware
             app.UseSwagger();
             app.UseSwaggerUI(x => x.SwaggerEndpoint("/swagger/v1/swagger.json", "Bitskins bot API"));
@@ -62,8 +73,7 @@ namespace WebApi
                 .AllowAnyHeader()
                 .AllowCredentials());
 
-            // global error handler
-            app.UseMiddleware<ErrorHandlerMiddleware>();
+            app.UseSerilogRequestLogging();
 
             // custom jwt auth middleware
             app.UseMiddleware<JwtMiddleware>();

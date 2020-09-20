@@ -13,6 +13,7 @@ namespace WebApi.Services
     {
         IEnumerable<WhitelistedItemResponse> GetAll();
         WhitelistedItemResponse GetById(int id);
+        WhitelistedItemResponse GetByName(string name);
         WhitelistedItemResponse Create(CreateRequest model);
         WhitelistedItemResponse Update(int id, UpdateRequest model);
         void Delete(int id);
@@ -43,6 +44,12 @@ namespace WebApi.Services
         public WhitelistedItemResponse GetById(int id)
         {
             var item = getWhitelistedItem(id);
+            return _mapper.Map<WhitelistedItemResponse>(item);
+        }
+
+        public WhitelistedItemResponse GetByName(string name)
+        {
+            var item = _context.WhitelistedItems.FirstOrDefault(i => i.Name == name);
             return _mapper.Map<WhitelistedItemResponse>(item);
         }
 

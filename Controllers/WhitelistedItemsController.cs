@@ -30,15 +30,6 @@ namespace WebApi.Controllers
             _bitskinsService = bitskinsService;
         }
 
-        [HttpGet("test")]
-        public async Task<ActionResult> testAsync()
-        {
-            string itemName = "AK-47 | VULCAN (MINIMAL WEAR)";
-            var itemSales = await _bitskinsService.GetRecentSalesInfo(itemName);
-
-            return Ok(itemSales);
-        }
-
         [Authorize]
         [HttpGet]
         public ActionResult<IEnumerable<WhitelistedItemResponse>> GetAll()
