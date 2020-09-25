@@ -14,6 +14,8 @@ using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using WebApi.Models.Bitskins;
 using System.Globalization;
+using WebApi.Entities;
+using System.Linq;
 
 namespace WebApi.Services
 {
@@ -22,13 +24,15 @@ namespace WebApi.Services
         Task<AccountBalance> GetAccountBalance();
         Task<IEnumerable<Sale>> GetRecentSalesInfo(string itemName);
         Task<IEnumerable<Sale>> GetBuyHistory(int pageNumber = 1);
-        Task BuyItem(BitskinsItem item);
-        Task ProcessItems(List<BitskinsItem> items);
+        Task<AccountInventory> GetAccountInventory(int pageNumber = 1);
+        Task BuyItem(BitskinsItem item, int accountId);
+        Task ProcessItems(List<BitskinsItem> items, int accountId);
     }
 
     public class BitskinsService : IBitskinsService
     {
         private readonly IMapper _mapper;
+        private readonly DataContext _context;
         private readonly ILogger<BitskinsService> _logger;
         private readonly IWhitelistedItemService _whitelistedItemService;
         private readonly ICsgobackpackService _csgobackpackService;
@@ -37,6 +41,7 @@ namespace WebApi.Services
 
         public BitskinsService(
             IMapper mapper,
+            DataContext context,
             ILogger<BitskinsService> logger,
             IOptions<AppSettings> appSettings,
             IWhitelistedItemService whitelistedItemService,
@@ -44,6 +49,7 @@ namespace WebApi.Services
             HttpClient client)
         {
             _mapper = mapper;
+            _context = context;
             _logger = logger;
             _whitelistedItemService = whitelistedItemService;
             _csgobackpackService = csgobackpackService;
@@ -84,6 +90,24 @@ namespace WebApi.Services
             return JsonConvert.DeserializeObject<IEnumerable<Sale>>(buyHistory);
         }
 
+        public async Task<AccountInventory> GetAccountInventory(int pageNumber = 1)
+        {
+            var options = new {
+                page = pageNumber,
+            };
+
+            string url = PrepareUrl("get_my_inventory", options);
+            var response = await _httpClient.GetAsync(url);
+
+            response.EnsureSuccessStatusCode();
+
+            var jsonString = await response.Content.ReadAsStringAsync();
+            var parsedJson = JObject.Parse(jsonString);
+            var buyHistory = parsedJson["data"].ToString();
+
+            return JsonConvert.DeserializeObject<AccountInventory>(buyHistory);
+        }
+
         public async Task<IEnumerable<Sale>> GetRecentSalesInfo(string itemName)
         {
             if (itemName == null) throw new AppException("You have to provide correct item name.");
@@ -104,10 +128,9 @@ namespace WebApi.Services
             return JsonConvert.DeserializeObject<IEnumerable<Sale>>(itemSales);
         }
 
-        public async Task BuyItem(BitskinsItem item)
+        public async Task BuyItem(BitskinsItem item, int accountId)
         {
-
-            _logger.LogInformation($"Buying: {item.ToString()}");
+            _logger.LogInformation("Buying item: {@item}", item);
 
             var options = new {
                 item_ids = item.ItemId,
@@ -131,33 +154,92 @@ namespace WebApi.Services
             }
 
             _logger.LogInformation($"SUCCESS ---->> Buy Item response: {content}");
+
+            JToken dataItems = json.SelectToken("$.data.items");
+
+            if (dataItems == null)
+                throw new Exception($"Buy item response error - data.items is null : {content}");
+
+            BuyItemResponse[] purchasedItems = dataItems.ToObject<BuyItemResponse[]>();
+
+            foreach (BuyItemResponse i in purchasedItems)
+            {
+                PurchasedItem purchasedItem = _mapper.Map<PurchasedItem>(i);
+                purchasedItem.AccountId = accountId;
+
+                _context.PurchasedItems.Add(purchasedItem);
+            }
         }
 
-        public async Task ProcessItems(List<BitskinsItem> items)
+        public async Task ProcessItems(List<BitskinsItem> items, int accountId)
         {
-            // _logger.LogInformation($"Processing {items.Count} new items");
-            // Console.WriteLine(JsonConvert.SerializeObject(items));
+            var account = _context.Accounts.Find(accountId);
+            if (account == null) throw new KeyNotFoundException("Account not found");
+            if (account.BotStatus == BotStatus.Off) return;
 
+            _logger.LogInformation("Processing {count} new items", items.Count);
+
+            List<BitskinsItem> wantedItems = await GetWantedItems(items, accountId);
+
+            _logger.LogInformation("Found {count} wanted items.", wantedItems.Count);
+            if (wantedItems.Count == 0) return;
+
+            foreach (BitskinsItem item in wantedItems)
+            {
+                try
+                {
+                    await BuyItem(item, accountId);
+                }
+                catch(ItemNotAvailableException ex)
+                {
+                    _logger.LogWarning("Item is not available for purchase: {message}", ex.Message);
+                }
+            }
+        }
+
+        // helper methods
+
+        private async Task<List<BitskinsItem>> GetWantedItems(List<BitskinsItem> items, int accountId)
+        {
             List<BitskinsItem> wantedItems = new List<BitskinsItem>();
+
+            AccountInventory inventory = await GetAccountInventory();
 
             foreach (BitskinsItem item in items)
             {
-                _logger.LogInformation($"Checking item price: {item.MarketHashName} ({item.Price})");
+                _logger.LogInformation("Checking item price: {@item})", item);
                 // check if this item is whitelisted in database
-                var whitelisted = _whitelistedItemService.GetByName(item.MarketHashName);
+                var whitelisted = _whitelistedItemService.GetByNameAndAccountId(item.MarketHashName, accountId);
 
                 // skip if item is not whitelisted
-                if (whitelisted == null) continue;
+                if (whitelisted == null)
+                {
+                    _logger.LogInformation("Skipping - item not whitelisted");
+                    continue;
+                }
+
+                if (whitelisted.MaxQuantity != 0)
+                {
+                    var itemsCount = inventory.PendingWithdrawal.Items
+                        .Where(i => i.MarketHashName == item.MarketHashName)
+                        .Count();
+
+                    if (itemsCount >= whitelisted.MaxQuantity)
+                    {
+                        var message = "Skipping - pending inventory already contains {c} same items and maxQuantity is set to: {q}";
+                        _logger.LogInformation(message, itemsCount, whitelisted.MaxQuantity);
+                        continue;
+                    }
+                }
 
                 // get item external price
                 ItemPrice externalPrice = await _csgobackpackService.GetItemPrice(item.MarketHashName);
                 decimal averagePrice = Convert.ToDecimal(externalPrice.Average);
-                _logger.LogInformation($"average price: {averagePrice}");
-                // _logger.LogInformation($"multiplier: {whitelisted.PriceMultiplier}");
 
                 // skip if item price is greather than multiplier * averagePrice
-                if (item.Price > (whitelisted.PriceMultiplier * averagePrice)) {
-                    _logger.LogInformation($"Skipping item: {item.MarketHashName} ({item.Price})");
+                if (item.Price > (whitelisted.PriceMultiplier * averagePrice))
+                {
+                    _logger.LogInformation($"Skipping item: {item.Price} > {whitelisted.PriceMultiplier} * {averagePrice}");
                     continue;
                 }
 
@@ -165,22 +247,10 @@ namespace WebApi.Services
                 wantedItems.Add(item);
             }
 
-            _logger.LogInformation($"Found {wantedItems.Count} wanted items.");
-            if (wantedItems.Count == 0) return;
-
-            foreach (BitskinsItem item in wantedItems)
-            {
-                try {
-                    await this.BuyItem(item);
-                } catch(ItemNotAvailableException ex) {
-                    _logger.LogWarning($"Item is not available for purchase: ${ex.ToString()}");
-                }
-            }
+            return wantedItems;
         }
 
-        // helper methods
-
-        public string Get2FACode()
+        private string Get2FACode()
         {
             var secretKey = Base32.Decode(_appSettings.BitskinsSecret);
             var totp = new Totp(secretKey);

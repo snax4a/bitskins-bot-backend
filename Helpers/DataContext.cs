@@ -9,6 +9,7 @@ namespace WebApi.Helpers
     {
         public DbSet<Account> Accounts { get; set; }
         public DbSet<WhitelistedItem> WhitelistedItems { get; set; }
+        public DbSet<PurchasedItem> PurchasedItems { get; set; }
         public DbSet<Price> Prices { get; set; }
 
         private readonly IConfiguration Configuration;
@@ -23,7 +24,8 @@ namespace WebApi.Helpers
         protected override void OnConfiguring(DbContextOptionsBuilder options)
         {
             // connest to mysql database
-            options.UseMySQL(Configuration.GetConnectionString("MYSQLDatabase")).UseLoggerFactory(_loggerFactory);
+            options.UseMySQL(Configuration.GetConnectionString("MYSQLDatabase"));
+                // .UseLoggerFactory(_loggerFactory);
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

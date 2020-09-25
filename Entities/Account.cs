@@ -12,6 +12,7 @@ namespace WebApi.Entities
         public string PasswordHash { get; set; }
         public bool AcceptTerms { get; set; }
         public Role Role { get; set; }
+        public BotStatus BotStatus { get; set; }
         public string VerificationToken { get; set; }
         public DateTime? Verified { get; set; }
         public bool IsVerified => Verified.HasValue || PasswordReset.HasValue;

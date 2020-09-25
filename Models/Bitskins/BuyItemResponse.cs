@@ -1,50 +1,34 @@
-using System;
-using System.ComponentModel.DataAnnotations;
+﻿using System;
 using Newtonsoft.Json;
 
 namespace WebApi.Models.Bitskins
 {
-    public class BitskinsItem
+    public class BuyItemResponse
     {
-        [Required]
         [JsonProperty("app_id")]
         public string AppId { get; set; }
 
-        [Required]
+        [JsonProperty("context_id")]
+        public string ContextId { get; set; }
+
         [JsonProperty("item_id")]
         public string ItemId { get; set; }
 
-        [Required]
         [JsonProperty("asset_id")]
         public string AssetId { get; set; }
 
-        [Required]
         [JsonProperty("class_id")]
         public string ClassId { get; set; }
 
-        [Required]
         [JsonProperty("instance_id")]
         public string InstanceId { get; set; }
 
-        public string Image { get; set; }
-
-        [Required]
         [JsonProperty("market_hash_name")]
         public string MarketHashName { get; set; }
-
-        [Required]
         public decimal Price { get; set; }
 
-        [Required]
-        public string Discount { get; set; }
-
-        [Required]
         [JsonProperty("withdrawable_at")]
         [JsonConverter(typeof(UnixTimestampConverter))]
         public DateTime WithdrawableAt { get; set; }
-
-        [Required]
-        [JsonProperty("event_type")]
-        public string EventType { get; set; }
     }
 }

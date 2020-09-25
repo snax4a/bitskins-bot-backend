@@ -63,7 +63,6 @@ namespace WebApi.Services
 
         public async Task<ItemPrice> GetItemPrice(string itemName)
         {
-            _logger.LogInformation("GET ITEM PRICE START");
             StringBuilder url = new StringBuilder("GetItemPrice");
             url.Append($"?key={_appSettings.CsgobackpackApiKey}");
             url.Append($"&id={itemName}");
@@ -71,8 +70,6 @@ namespace WebApi.Services
             url.Append("&time=30");
 
             var response = await _httpClient.GetAsync(url.ToString());
-
-            _logger.LogInformation("GET ITEM PRICE RESPONSE");
 
             response.EnsureSuccessStatusCode();
 

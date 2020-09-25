@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using System.Collections.Generic;
 using System.Threading.Tasks;
+using WebApi.Entities;
 using WebApi.Models.Bitskins;
 using WebApi.Services;
 
@@ -29,7 +29,7 @@ namespace WebApi.Controllers
             _csgobackpackService = csgobackpackService;
         }
 
-        // [Authorize]
+        [Authorize]
         [HttpGet("balance")]
         public async Task<ActionResult> GetAccountBalance()
         {
@@ -53,42 +53,15 @@ namespace WebApi.Controllers
             return Ok(itemSales);
         }
 
-        // [Authorize(Role.System)]
+        [Authorize]
         [HttpPost("process-items")]
-        public ActionResult Create(ProcessItemsRequest model)
+        public async Task<ActionResult> ProcessItems(ProcessItemsRequest model)
         {
-            return Ok(model);
+            await _bitskinsService.ProcessItems(model.Items, Account.Id);
+            return Ok();
         }
 
-        [HttpGet("item/buy-test")]
-        public async Task<ActionResult> BuyTest()
-        {
-            List<BitskinsItem> itemsList = new List<BitskinsItem>();
-            BitskinsItem item1 = new BitskinsItem();
-            BitskinsItem item2 = new BitskinsItem();
-            BitskinsItem item3 = new BitskinsItem();
-
-            item2.ItemId = "14108606168";
-            item2.MarketHashName = "Sealed Graffiti | X-Knives (Desert Amber)";
-            item2.Price = 0.01M;
-            itemsList.Add(item2);
-
-            item1.ItemId = "14108607050";
-            item1.MarketHashName = "Sealed Graffiti | X-Axes (Brick Red)";
-            item1.Price = 0.01M;
-            itemsList.Add(item1);
-
-            item3.ItemId = "14108607050";
-            item3.MarketHashName = "TEST TEST";
-            item3.Price = 0.01M;
-            itemsList.Add(item3);
-
-            await _bitskinsService.ProcessItems(itemsList);
-
-            return Ok("done");
-        }
-
-        // [Authorize]
+        [Authorize]
         [HttpGet("item/{itemName}/external-price")]
         public async Task<ActionResult> GetItemPrice(string itemName)
         {

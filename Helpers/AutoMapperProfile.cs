@@ -36,6 +36,8 @@ namespace WebApi.Helpers
             CreateMap<Models.WhitelistedItems.CreateRequest, WhitelistedItem>();
             CreateMap<Models.WhitelistedItems.UpdateRequest, WhitelistedItem>();
             CreateMap<WhitelistedItem, WhitelistedItemResponse>();
+
+            CreateMap<PurchasedItem, WhitelistedItemResponse>();
         }
     }
 }
