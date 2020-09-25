@@ -1,0 +1,59 @@
+# Please refer https://aka.ms/HTTPSinContainer on how to setup an https developer certificate for your ASP .NET Core service.
+
+version: '3.4'
+
+services:
+  db:
+    image: mysql:8
+    container_name: bitskinsbot-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: bitskins_bot
+      MYSQL_USER: bitskins
+      MYSQL_PASSWORD: test
+    volumes:
+      - mysqldata:/var/lib/mysql
+    restart: always
+    ports:
+      - "3306:3306"
+    networks:
+      - app
+
+  webapi:
+    container_name: bitskinsbot-api
+    depends_on:
+      - db
+      - seq
+    image: webapi
+    environment:
+      - DBHOST=db
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:80
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    ports:
+      - "4000:80"
+    networks:
+      - app
+
+  seq:
+    image: datalust/seq:latest
+    container_name: bitskinsbot-seq
+    restart: unless-stopped
+    volumes:
+      - seqdata:/data
+    environment:
+      - ACCEPT_EULA=Y
+    ports:
+      - '5342:80'
+      - '5341:5341'
+    networks:
+      - app
+
+networks:
+  app:
+
+volumes:
+  mysqldata:
+  seqdata:

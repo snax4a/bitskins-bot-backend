@@ -1,8 +1,10 @@
 ﻿using System;
-using System.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
+using WebApi.Helpers;
 
 namespace WebApi
 {
@@ -13,6 +15,12 @@ namespace WebApi
             try
             {
                 CreateHostBuilder(args).Build().Run();
+                // var host = CreateHostBuilder(args).Build();
+                // using (var scope = host.Services.CreateScope())
+                // {
+                //     scope.ServiceProvider.GetRequiredService<DataContext>().Database.Migrate();
+                // }
+                // host.Run();
             }
             catch (Exception ex)
             {
@@ -28,8 +36,7 @@ namespace WebApi
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    webBuilder.UseStartup<Startup>()
-                        .UseUrls("http://localhost:4000");
+                    webBuilder.UseStartup<Startup>();
                 })
                 .UseSerilog((hostingContext, loggerConfig) =>
                     loggerConfig.ReadFrom
