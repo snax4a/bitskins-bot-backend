@@ -50,7 +50,7 @@ namespace WebApi
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, DataContext context)
         {
             // migrate database changes on startup (includes initial db creation)
-            // context.Database.Migrate();
+            context.Database.Migrate();
 
             if (env.IsDevelopment())
             {
