@@ -135,7 +135,8 @@ namespace WebApi.Services
             var options = new {
                 item_ids = item.ItemId,
                 prices = item.Price.ToString(new CultureInfo("en-US")),
-                auto_trade = "false"
+                auto_trade = "false",
+                allow_trade_delayed_purchases = "true"
             };
 
             string url = PrepareUrl("buy_item", options);
