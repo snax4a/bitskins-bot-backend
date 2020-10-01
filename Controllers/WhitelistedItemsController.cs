@@ -52,6 +52,22 @@ namespace WebApi.Controllers
         }
 
         [Authorize]
+        [HttpGet("outdated-prices/{amount:int}")]
+        public ActionResult<WhitelistedItemResponse> GetItemsWithOutdatedPrices(int amount)
+        {
+            var items = _whitelistedItemService.GetItemsWithOutdatedPrices(amount);
+            return Ok(items);
+        }
+
+        [Authorize]
+        [HttpPost("update-prices")]
+        public ActionResult<WhitelistedItemResponse> UpdatePrices(UpdatePricesRequest model)
+        {
+            _whitelistedItemService.UpdatePrices(model);
+            return Ok();
+        }
+
+        [Authorize]
         [HttpPost]
         public ActionResult<WhitelistedItemResponse> Create(CreateRequest model)
         {

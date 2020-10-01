@@ -6,6 +6,7 @@ using WebApi.Entities;
 using WebApi.Helpers;
 using WebApi.Models.WhitelistedItems;
 using Microsoft.Extensions.Logging;
+using System;
 
 namespace WebApi.Services
 {
@@ -14,6 +15,8 @@ namespace WebApi.Services
         IEnumerable<WhitelistedItemResponse> GetAll();
         WhitelistedItemResponse GetById(int id);
         WhitelistedItemResponse GetByNameAndAccountId(string name, int accountId);
+        IEnumerable<OutdatedItemResponse> GetItemsWithOutdatedPrices(int amount);
+        void UpdatePrices(UpdatePricesRequest model);
         WhitelistedItemResponse Create(CreateRequest model);
         WhitelistedItemResponse Update(int id, UpdateRequest model);
         void Delete(int id);
@@ -45,6 +48,32 @@ namespace WebApi.Services
         {
             var item = getWhitelistedItem(id);
             return _mapper.Map<WhitelistedItemResponse>(item);
+        }
+
+        public IEnumerable<OutdatedItemResponse> GetItemsWithOutdatedPrices(int amount)
+        {
+            var lastUpdate = DateTime.UtcNow.AddHours(-6);
+            var items = _context.WhitelistedItems
+                .Where(i => i.PriceUpdatedAt <= lastUpdate)
+                .OrderBy(i => i.PriceUpdatedAt)
+                .Select(i => new OutdatedItemResponse { Id = i.Id, Name = i.Name, PriceUpdatedAt = i.PriceUpdatedAt })
+                .Take(amount);
+
+            return items;
+        }
+
+        public void UpdatePrices(UpdatePricesRequest model)
+        {
+            foreach (var data in model.PriceData)
+            {
+                var item = getWhitelistedItem(data.Id);
+
+                // copy model to item and save
+                _mapper.Map(data, item);
+                item.PriceUpdatedAt = DateTime.UtcNow;
+                _context.WhitelistedItems.Update(item);
+                _context.SaveChanges();
+            }
         }
 
         public WhitelistedItemResponse GetByNameAndAccountId(string name, int accountId)
