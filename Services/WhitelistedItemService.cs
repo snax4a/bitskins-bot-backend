@@ -52,11 +52,11 @@ namespace WebApi.Services
 
         public IEnumerable<OutdatedItemResponse> GetItemsWithOutdatedPrices(int amount)
         {
-            var lastUpdate = DateTime.UtcNow.AddHours(-6);
+            var lastUpdate = DateTime.Now.AddHours(-6);
             var items = _context.WhitelistedItems
-                .Where(i => i.PriceUpdatedAt <= lastUpdate)
+                .Where(i => i.Slug != null && i.PriceUpdatedAt <= lastUpdate)
                 .OrderBy(i => i.PriceUpdatedAt)
-                .Select(i => new OutdatedItemResponse { Id = i.Id, Name = i.Name, PriceUpdatedAt = i.PriceUpdatedAt })
+                .Select(i => new OutdatedItemResponse { Id = i.Id, Name = i.Name, Slug = i.Slug })
                 .Take(amount);
 
             return items;
@@ -66,11 +66,12 @@ namespace WebApi.Services
         {
             foreach (var data in model.PriceData)
             {
+                _logger.LogInformation("Updating item price: {@model}", model);
                 var item = getWhitelistedItem(data.Id);
 
                 // copy model to item and save
                 _mapper.Map(data, item);
-                item.PriceUpdatedAt = DateTime.UtcNow;
+                item.PriceUpdatedAt = DateTime.Now;
                 _context.WhitelistedItems.Update(item);
                 _context.SaveChanges();
             }
@@ -110,7 +111,7 @@ namespace WebApi.Services
             if (model.Name != item.Name)
             {
                 item.Price = 0;
-                item.PriceUpdatedAt = DateTime.UtcNow.AddHours(-24);
+                item.PriceUpdatedAt = DateTime.Now.AddHours(-24);
             }
 
             // copy model to item and save
