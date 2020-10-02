@@ -100,7 +100,18 @@ namespace WebApi.Services
 
         public WhitelistedItemResponse Update(int id, UpdateRequest model)
         {
+            // validate
+            if (_context.WhitelistedItems.Any(i => i.Name == model.Name && i.AccountId == model.AccountId && i.Id != id))
+                throw new AppException($"Item '{model.Name}' is already whitelisted");
+
             var item = getWhitelistedItem(id);
+
+            // if item name was updated we need to reset its price
+            if (model.Name != item.Name)
+            {
+                item.Price = 0;
+                item.PriceUpdatedAt = DateTime.UtcNow.AddHours(-24);
+            }
 
             // copy model to item and save
             _mapper.Map(model, item);

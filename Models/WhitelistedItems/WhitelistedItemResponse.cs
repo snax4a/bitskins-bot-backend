@@ -6,6 +6,8 @@ namespace WebApi.Models.WhitelistedItems
     {
         public int Id { get; set; }
         public string Name { get; set; }
+        public string Image { get; set; }
+        public string Slug { get; set; }
         public int MaxQuantity { get; set; }
         public decimal PriceMultiplier { get; set; }
         public decimal Price { get; set; }

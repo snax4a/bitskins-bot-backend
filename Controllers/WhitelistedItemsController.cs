@@ -52,6 +52,14 @@ namespace WebApi.Controllers
         }
 
         [Authorize]
+        [HttpGet("get-by-name/{name}")]
+        public ActionResult<WhitelistedItemResponse> GetByName(string name)
+        {
+            var item = _whitelistedItemService.GetByNameAndAccountId(name, Account.Id);
+            return Ok(item);
+        }
+
+        [Authorize]
         [HttpGet("outdated-prices/{amount:int}")]
         public ActionResult<WhitelistedItemResponse> GetItemsWithOutdatedPrices(int amount)
         {
@@ -86,6 +94,8 @@ namespace WebApi.Controllers
             // users can update their own items and admins can update any item
             if (item.AccountId != Account.Id && Account.Role != Role.Admin)
                 return Unauthorized(new { message = "Unauthorized" });
+
+            model.AccountId = Account.Id;
 
             var updatedItem = _whitelistedItemService.Update(id, model);
             return Ok(updatedItem);
