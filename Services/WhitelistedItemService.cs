@@ -66,7 +66,7 @@ namespace WebApi.Services
         {
             foreach (var data in model.PriceData)
             {
-                _logger.LogInformation("Updating item price: {@model}", model);
+                _logger.LogInformation("Updating item price: {@data}", data);
                 var item = getWhitelistedItem(data.Id);
 
                 // copy model to item and save
