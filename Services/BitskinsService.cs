@@ -165,10 +165,16 @@ namespace WebApi.Services
 
             foreach (BuyItemResponse i in purchasedItems)
             {
+                var whitelisted = _whitelistedItemService.GetByNameAndAccountId(i.MarketHashName, accountId);
+
                 PurchasedItem purchasedItem = _mapper.Map<PurchasedItem>(i);
                 purchasedItem.AccountId = accountId;
+                purchasedItem.PurchasedAt = DateTime.Now;
+                purchasedItem.WikiPrice = whitelisted.Price;
+                purchasedItem.PriceMultiplier = whitelisted.PriceMultiplier;
 
                 _context.PurchasedItems.Add(purchasedItem);
+                _context.SaveChanges();
             }
         }
 
@@ -233,16 +239,14 @@ namespace WebApi.Services
                     }
                 }
 
-                // get item external price
-                ItemPrice externalPrice = await _csgobackpackService.GetItemPrice(item.MarketHashName);
-                decimal averagePrice = Convert.ToDecimal(externalPrice.Average);
-
                 // skip if item price is greather than multiplier * averagePrice
-                if (item.Price > (whitelisted.PriceMultiplier * averagePrice))
+                if (item.Price > (whitelisted.PriceMultiplier * whitelisted.Price))
                 {
-                    _logger.LogInformation($"Skipping item: {item.Price} > {whitelisted.PriceMultiplier} * {averagePrice}");
+                    _logger.LogInformation($"Skipping item: {item.Price} > {whitelisted.PriceMultiplier} * {whitelisted.Price}");
                     continue;
                 }
+
+                _logger.LogInformation($"Found good item: {item.Price} <= {whitelisted.PriceMultiplier} * {whitelisted.Price}");
 
                 // if above conditions are met add item to wantedItems list
                 wantedItems.Add(item);

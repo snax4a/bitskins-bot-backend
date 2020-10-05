@@ -1,6 +1,7 @@
 using AutoMapper;
 using WebApi.Entities;
 using WebApi.Models.Accounts;
+using WebApi.Models.Bitskins;
 using WebApi.Models.WhitelistedItems;
 
 namespace WebApi.Helpers
@@ -39,6 +40,8 @@ namespace WebApi.Helpers
             CreateMap<WhitelistedItem, WhitelistedItemResponse>();
 
             CreateMap<PurchasedItem, WhitelistedItemResponse>();
+
+            CreateMap<BuyItemResponse, PurchasedItem>();
         }
     }
 }

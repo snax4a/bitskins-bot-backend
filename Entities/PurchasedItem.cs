@@ -7,6 +7,8 @@ namespace WebApi.Entities
         public int Id { get; set; }
         public string MarketHashName { get; set; }
         public decimal Price { get; set; }
+        public decimal WikiPrice { get; set; }
+        public decimal PriceMultiplier { get; set; }
         public string AppId { get; set; }
         public string ContextId { get; set; }
         public string ItemId { get; set; }
