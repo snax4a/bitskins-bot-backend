@@ -16,6 +16,7 @@ using WebApi.Models.Bitskins;
 using System.Globalization;
 using WebApi.Entities;
 using System.Linq;
+using Microsoft.EntityFrameworkCore.Internal;
 
 namespace WebApi.Services
 {
@@ -202,6 +203,106 @@ namespace WebApi.Services
                     _logger.LogWarning("Item is not available for purchase: {message}", ex.Message);
                 }
             }
+        }
+
+        public async Task CreateBuyOrder(string itemName, decimal price, int quantity)
+        {
+            _logger.LogInformation("Creating buy order for: {i} (${p}), quantity: {q}", itemName, price, quantity);
+
+            var options = new {
+                name = itemName,
+                price = price.ToString(new CultureInfo("en-US")),
+                quantity = quantity
+            };
+
+            string url = PrepareUrl("create_buy_order", options);
+            var response = await _httpClient.GetAsync(url);
+            var content = await response.Content.ReadAsStringAsync();
+            var json = JObject.Parse(content);
+
+            if (!response.IsSuccessStatusCode)
+                throw new ShouldNotifyException($"Create buy order response error: {content}");
+
+            _logger.LogInformation($"SUCCESS ---->> Create buy order response: {content}");
+
+            // JToken dataItems = json.SelectToken("$.data.items");
+
+            // if (dataItems == null)
+            //     throw new Exception($"Buy item response error - data.items is null : {content}");
+
+            // BuyItemResponse[] purchasedItems = dataItems.ToObject<BuyItemResponse[]>();
+
+            // foreach (BuyItemResponse i in purchasedItems)
+            // {
+            //     var whitelisted = _whitelistedItemService.GetByNameAndAccountId(i.MarketHashName, accountId);
+
+            //     PurchasedItem purchasedItem = _mapper.Map<PurchasedItem>(i);
+            //     purchasedItem.AccountId = accountId;
+            //     purchasedItem.PurchasedAt = DateTime.Now;
+            //     purchasedItem.WikiPrice = whitelisted.Price;
+            //     purchasedItem.PriceMultiplier = whitelisted.PriceMultiplier;
+
+            //     _context.PurchasedItems.Add(purchasedItem);
+            //     _context.SaveChanges();
+            // }
+        }
+
+        public async Task<int> GetExpectedPlaceInQueue(string itemName, decimal price)
+        {
+            var options = new {
+                name = itemName,
+                price = price.ToString(new CultureInfo("en-US"))
+            };
+
+            string url = PrepareUrl("get_expected_place_in_queue_for_new_buy_order", options);
+            var response = await _httpClient.GetAsync(url);
+
+            response.EnsureSuccessStatusCode();
+
+            var content = await response.Content.ReadAsStringAsync();
+            var json = JObject.Parse(content);
+
+            JToken placeInQueueToken = json.SelectToken("$.data.expected_place_in_queue");
+            return Int16.Parse(placeInQueueToken.ToString());
+        }
+
+        public async Task CancellBuyOrders(string[] ids)
+        {
+            string joinedIds = ids.Join(",");
+            _logger.LogInformation("Cancelling buy order IDs: {ids}", joinedIds);
+
+            var options = new {
+                buy_order_ids = joinedIds
+            };
+
+            string url = PrepareUrl("cancel_buy_orders", options);
+            var response = await _httpClient.GetAsync(url);
+            var content = await response.Content.ReadAsStringAsync();
+            var json = JObject.Parse(content);
+
+            if (!response.IsSuccessStatusCode)
+                throw new ShouldNotifyException($"Cancell buy order response error: {content}");
+
+            _logger.LogInformation($"SUCCESS ---->> Cancell buy order response: {content}");
+        }
+
+        public async Task<IEnumerable<BuyOrder>> GetBuyOrders(string status)
+        {
+            string[] possibleStatuses = new [] { "active", "cancelled" };
+
+            if (!possibleStatuses.Contains(status))
+                throw new Exception("Incorrect buy orders status");
+
+            string url = PrepareUrl($"get_{status}_buy_orders");
+            var response = await _httpClient.GetAsync(url);
+
+            response.EnsureSuccessStatusCode();
+
+            var content = await response.Content.ReadAsStringAsync();
+            var json = JObject.Parse(content);
+
+            JToken ordersToken = json.SelectToken("$.data.orders");
+            return ordersToken.ToObject<BuyOrder[]>().AsEnumerable();
         }
 
         // helper methods
