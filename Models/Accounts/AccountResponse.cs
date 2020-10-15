@@ -1,4 +1,5 @@
 using System;
+using WebApi.Entities;
 
 namespace WebApi.Models.Accounts
 {
@@ -13,5 +14,6 @@ namespace WebApi.Models.Accounts
         public DateTime Created { get; set; }
         public DateTime? Updated { get; set; }
         public bool IsVerified { get; set; }
+        public AccountSettings Settings { get; set; }
     }
 }

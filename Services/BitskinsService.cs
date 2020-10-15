@@ -36,7 +36,6 @@ namespace WebApi.Services
         private readonly DataContext _context;
         private readonly ILogger<BitskinsService> _logger;
         private readonly IWhitelistedItemService _whitelistedItemService;
-        private readonly ICsgobackpackService _csgobackpackService;
         private readonly AppSettings _appSettings;
         private readonly HttpClient _httpClient;
 
@@ -46,14 +45,12 @@ namespace WebApi.Services
             ILogger<BitskinsService> logger,
             IOptions<AppSettings> appSettings,
             IWhitelistedItemService whitelistedItemService,
-            ICsgobackpackService csgobackpackService,
             HttpClient client)
         {
             _mapper = mapper;
             _context = context;
             _logger = logger;
             _whitelistedItemService = whitelistedItemService;
-            _csgobackpackService = csgobackpackService;
             _appSettings = appSettings.Value;
             client.BaseAddress = new Uri("https://bitskins.com/api/v1/");
             _httpClient = client;

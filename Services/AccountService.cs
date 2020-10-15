@@ -218,6 +218,7 @@ namespace WebApi.Services
             var account = _mapper.Map<Account>(model);
             account.Created = DateTime.UtcNow;
             account.Verified = DateTime.UtcNow;
+            account.Settings = new AccountSettings();
 
             // hash password
             account.PasswordHash = BC.HashPassword(model.Password);

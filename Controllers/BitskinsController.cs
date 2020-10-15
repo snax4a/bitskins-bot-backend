@@ -15,18 +15,15 @@ namespace WebApi.Controllers
         private readonly IMapper _mapper;
         private readonly ILogger _logger;
         private readonly IBitskinsService _bitskinsService;
-        private readonly ICsgobackpackService _csgobackpackService;
 
         public BitskinsController(
             IMapper mapper,
             ILogger<BitskinsController> logger,
-            IBitskinsService bitskinsService,
-            ICsgobackpackService csgobackpackService)
+            IBitskinsService bitskinsService)
         {
             _mapper = mapper;
             _logger = logger;
             _bitskinsService = bitskinsService;
-            _csgobackpackService = csgobackpackService;
         }
 
         [Authorize]
@@ -59,14 +56,6 @@ namespace WebApi.Controllers
         {
             await _bitskinsService.ProcessItems(model.Items, Account.Id);
             return Ok();
-        }
-
-        [Authorize]
-        [HttpGet("item/{itemName}/external-price")]
-        public async Task<ActionResult> GetItemPrice(string itemName)
-        {
-            ItemPrice itemPrice = await _csgobackpackService.GetItemPrice(itemName);
-            return Ok(itemPrice);
         }
     }
 }

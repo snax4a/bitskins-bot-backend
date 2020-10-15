@@ -24,6 +24,7 @@ namespace WebApi.Entities
         public List<RefreshToken> RefreshTokens { get; set; }
         public List<WhitelistedItem> WhitelistedItems { get; set; }
         public List<PurchasedItem> PurchasedItems { get; set; }
+        public AccountSettings Settings { get; set; }
 
         public bool OwnsToken(string token)
         {

@@ -30,9 +30,10 @@ namespace WebApi
             services.AddControllers()
                 .AddNewtonsoftJson(options => options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+            services.AddHttpContextAccessor();
 
             services.AddHttpClient<IBitskinsService, BitskinsService>();
-            services.AddHttpClient<ICsgobackpackService, CsgobackpackService>();
+            services.AddHttpClient<IDmarketService, DmarketService>();
 
             services.AddSwaggerGen(options =>
             {

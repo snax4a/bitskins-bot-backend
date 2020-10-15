@@ -42,6 +42,8 @@ namespace WebApi.Models.Accounts
             set => _confirmPassword = replaceEmptyWithNull(value);
         }
 
+        public AccountSettings Settings { get; set; }
+
         // helpers
 
         private string replaceEmptyWithNull(string value)
