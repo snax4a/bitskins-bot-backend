@@ -24,12 +24,28 @@ namespace WebApi.Controllers
             _dmarketService = dmarketService;
         }
 
-        // [Authorize]
+        [Authorize]
         [HttpGet("account/balance")]
         public async Task<ActionResult> GetAccountBalance()
         {
             var balance = await _dmarketService.GetAccountBalance();
             return Ok(balance);
+        }
+
+        // [Authorize]
+        [HttpGet("targets")]
+        public async Task<ActionResult> GetTargets()
+        {
+            var targets = await _dmarketService.GetTargets();
+            return Ok(targets);
+        }
+
+        // [Authorize]
+        [HttpGet("sale-offers")]
+        public async Task<ActionResult> GetSaleOffers()
+        {
+            var offers = await _dmarketService.GetSaleOffers();
+            return Ok(offers);
         }
     }
 }
