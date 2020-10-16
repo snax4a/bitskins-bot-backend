@@ -62,8 +62,12 @@ namespace WebApi.Services
             var jwtToken = generateJwtToken(account);
             var refreshToken = generateRefreshToken(ipAddress);
 
-            // save refresh token
             account.RefreshTokens.Add(refreshToken);
+
+            // remove old refresh tokens from account
+            removeOldRefreshTokens(account);
+
+            // save changes to db
             _context.Update(account);
             _context.SaveChanges();
 
@@ -83,6 +87,9 @@ namespace WebApi.Services
             refreshToken.RevokedByIp = ipAddress;
             refreshToken.ReplacedByToken = newRefreshToken.Token;
             account.RefreshTokens.Add(newRefreshToken);
+
+            removeOldRefreshTokens(account);
+
             _context.Update(account);
             _context.SaveChanges();
 
@@ -299,6 +306,13 @@ namespace WebApi.Services
                 Created = DateTime.UtcNow,
                 CreatedByIp = ipAddress
             };
+        }
+
+        private void removeOldRefreshTokens(Account account)
+        {
+            account.RefreshTokens.RemoveAll(x =>
+                !x.IsActive &&
+                x.Created.AddDays(_appSettings.RefreshTokenTTL) <= DateTime.UtcNow);
         }
 
         private string randomTokenString()
